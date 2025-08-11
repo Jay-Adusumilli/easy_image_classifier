@@ -68,7 +68,7 @@ class SimpleAnnotator:
 
         self.folder_path = folder_path
         self.image_files = [f for f in os.listdir(folder_path)
-                            if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                            if f.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff'))]
 
         if not self.image_files:
             self.status_var.set("No image files found in the selected folder")
@@ -81,7 +81,7 @@ class SimpleAnnotator:
     def select_single_image(self):
         image_path = filedialog.askopenfilename(
             title="Select image file",
-            filetypes=[("Image files", "*.jpg *.jpeg *.png")]
+            filetypes=[("Image files", "*.jpg *.jpeg *.png *.tif *.tiff")]
         )
         if not image_path:
             return False
