@@ -271,18 +271,22 @@ class SimpleAnnotator:
         self.canvas.delete("all")
         self.canvas_image_id = self.canvas.create_image(self.offset_x, self.offset_y, anchor=tk.NW, image=self.tk_img)
         # Draw boxes
-        for box in self.boxes:
+        for idx, box in enumerate(self.boxes):
             (x1, y1), (x2, y2) = box["box"]
             color = self.get_class_color(box["class"])
-            # Convert from original image space to display space
             x1_disp = int(x1 * self.scale_factor) + self.offset_x
             y1_disp = int(y1 * self.scale_factor) + self.offset_y
             x2_disp = int(x2 * self.scale_factor) + self.offset_x
             y2_disp = int(y2 * self.scale_factor) + self.offset_y
-            self.canvas.create_rectangle(x1_disp, y1_disp, x2_disp, y2_disp, outline=color, width=2)
+            # Fill if selected
+            if getattr(self, "selected_annotation", None) == ("box", idx):
+                fill_color = color
+                self.canvas.create_rectangle(x1_disp, y1_disp, x2_disp, y2_disp, outline=color, width=2, fill=fill_color, stipple="gray25")
+            else:
+                self.canvas.create_rectangle(x1_disp, y1_disp, x2_disp, y2_disp, outline=color, width=2)
         # Draw circles
         if hasattr(self, 'circles'):
-            for circle in self.circles:
+            for idx, circle in enumerate(self.circles):
                 (x1, y1), (x2, y2) = circle["circle"]
                 color = self.get_class_color(circle["class"])
                 x1_disp = int(x1 * self.scale_factor) + self.offset_x
@@ -290,7 +294,13 @@ class SimpleAnnotator:
                 x2_disp = int(x2 * self.scale_factor) + self.offset_x
                 y2_disp = int(y2 * self.scale_factor) + self.offset_y
                 r = int(((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5 * self.scale_factor)
-                self.canvas.create_oval(x1_disp - r, y1_disp - r, x1_disp + r, y1_disp + r, outline=color, width=2)
+                # Fill if selected
+                if getattr(self, "selected_annotation", None) == ("circle", idx):
+                    fill_color = color
+                    self.canvas.create_oval(x1_disp - r, y1_disp - r, x1_disp + r, y1_disp + r,
+                                           outline=color, width=2, fill=fill_color, stipple="gray25")
+                else:
+                    self.canvas.create_oval(x1_disp - r, y1_disp - r, x1_disp + r, y1_disp + r, outline=color, width=2)
         # Draw temp box
         if temp_box:
             (x1, y1), (x2, y2) = temp_box
@@ -429,6 +439,7 @@ class SimpleAnnotator:
         if not self.image_files:
             return
 
+        self.save_annotations()  # Save before switching
         if self.current_image_index < len(self.image_files) - 1:
             self.current_image_index += 1
             self.load_current_image()
@@ -439,6 +450,7 @@ class SimpleAnnotator:
         if not self.image_files:
             return
 
+        self.save_annotations()  # Save before switching
         if self.current_image_index > 0:
             self.current_image_index -= 1
             self.load_current_image()
